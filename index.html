@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>蔡徐坤马里奥1.21</title>
+    <meta name="description" content="ikun也有自己的马里奥！" />
+    
+    <!-- Standardised web app manifest -->
+    <link rel="manifest" href="appmanifest.json" />
+    
+    <!-- Allow fullscreen mode on iOS devices. (These are Apple specific meta tags.) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="apple-touch-icon" sizes="256x256" href="icon-256.png" />
+    <meta name="HandheldFriendly" content="true" />
+    
+    <!-- Chrome for Android web app tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="shortcut icon" sizes="256x256" href="icon-256.png" />
+
+    <!-- All margins and padding must be zero for the canvas to fill the screen. -->
+    <style type="text/css">
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        html, body {
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            touch-action: none;
+            -ms-touch-action: none;
+            height: 100%;
+        }
+        canvas {
+            touch-action-delay: none;
+            touch-action: none;
+            -ms-touch-action: none;
+        }
+        
+        /* 弹窗样式 */
+        #instruction-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-family: Arial, sans-serif;
+        }
+        
+        #instruction-box {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 80%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #fff;
+        }
+        
+        #instruction-box h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        #instruction-content {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        #confirm-button {
+            background: linear-gradient(to right, #ff8a00, #da1b60);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            padding: 12px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+        }
+        
+        #confirm-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        #confirm-button:active {
+            transform: translateY(1px);
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 5px;
+            padding: 2px 8px;
+            margin: 0 3px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            #instruction-box {
+                max-width: 90%;
+                padding: 20px;
+            }
+            
+            #instruction-box h2 {
+                font-size: 20px;
+            }
+            
+            #instruction-content {
+                font-size: 16px;
+            }
+            
+            #confirm-button {
+                padding: 10px 25px;
+                font-size: 16px;
+            }
+        }
+    </style>
+    
+</head> 
+ 
+<body> 
+    <!-- 操作说明弹窗 -->
+    <div id="instruction-overlay">
+        <div id="instruction-box">
+            <h2>游戏操作说明</h2>
+            <div id="instruction-content">
+                <!-- 这里的内容会根据设备类型动态填充 -->
+            </div>
+            <button id="confirm-button">我知道了</button>
+        </div>
+    </div>
+
+    <div id="fb-root"></div>
+    
+    <script>
+    // Issue a warning if trying to preview an exported project on disk.
+    (function(){
+        // Check for running exported on file protocol
+        if (window.location.protocol.substr(0, 4) === "file")
+        {
+            
+        }
+    })();
+    </script>
+    
+    <!-- The canvas must be inside a div called c2canvasdiv -->
+    <div id="c2canvasdiv">
+    
+        <!-- The canvas the project will render to.  If you change its ID, don't forget to change the
+        ID the runtime looks for in the jQuery events above (ready() and cr_sizeCanvas()). -->
+        <canvas id="c2canvas" width="256" height="224">
+            <!-- This text is displayed if the visitor's browser does not support HTML5.
+            You can change it, but it is a good idea to link to a description of a browser
+            and provide some links to download some popular HTML5-compatible browsers. -->
+            <h1>Your browser does not appear to support HTML5.  Try upgrading your browser to the latest version.  <a href="http://www.whatbrowser.org">What is a browser?</a>
+            <br/><br/><a href="http://www.microsoft.com/windows/internet-explorer/default.aspx">Microsoft Internet Explorer</a><br/>
+            <a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a><br/>
+            <a href="http://www.google.com/chrome/">Google Chrome</a><br/>
+            <a href="http://www.apple.com/safari/download/">Apple Safari</a></h1>
+        </canvas>
+        
+    </div>
+    
+    <!-- Pages load faster with scripts at the bottom -->
+    
+    <!-- Construct 2 exported games require jQuery. -->
+    <script src="jquery-2.1.1.min.js"></script>
+
+    <!-- The runtime script.  You can rename it, but don't forget to rename the reference here as well.
+    This file will have been minified and obfuscated if you enabled "Minify script" during export. -->
+    <script src="c2runtime.js"></script>
+
+    <script>
+        // 检测设备类型并显示相应的操作说明
+        function detectDeviceAndShowInstructions() {
+            const instructionContent = document.getElementById('instruction-content');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                instructionContent.innerHTML = `
+                    <p>左右滑动控制角色移动</p>
+                    <p><span class="key">A</span>键跳，<span class="key">B</span>键发子弹</p>
+                    <p>下滑钻管道/下蹲</p>
+                `;
+            } else {
+                instructionContent.innerHTML = `
+                    <p><span class="key">←</span><span class="key">→</span>键控制角色移动</p>
+                    <p><span class="key">空格</span>键跳，<span class="key">↓</span>键下蹲/钻管道</p>
+                    <p><span class="key">Shift</span>键发子弹</p>
+                `;
+            }
+        }
+        
+        // 初始化弹窗和游戏
+        function initializeGame() {
+            detectDeviceAndShowInstructions();
+            
+            // 添加确认按钮点击事件
+            document.getElementById('confirm-button').addEventListener('click', function() {
+                document.getElementById('instruction-overlay').style.display = 'none';
+                
+                // 启动Construct 2项目
+                cr_createRuntime("c2canvas");
+            });
+        }
+        
+        // 在文档加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initializeGame);
+        
+        // Pause and resume on page becoming visible/invisible
+        function onVisibilityChanged() {
+            if (document.hidden || document.mozHidden || document.webkitHidden || document.msHidden)
+                cr_setSuspended(true);
+            else
+                cr_setSuspended(false);
+        };
+        
+        document.addEventListener("visibilitychange", onVisibilityChanged, false);
+        document.addEventListener("mozvisibilitychange", onVisibilityChanged, false);
+        document.addEventListener("webkitvisibilitychange", onVisibilityChanged, false);
+        document.addEventListener("msvisibilitychange", onVisibilityChanged, false);
+        
+        function OnRegisterSWError(e)
+        {
+            console.warn("Failed to register service worker: ", e);
+        };
+        
+        // Runtime calls this global method when ready to start caching (i.e. after startup).
+        // This registers the service worker which caches resources for offline support.
+        window.C2_RegisterSW = function C2_RegisterSW()
+        {
+            if (!navigator.serviceWorker)
+                return;        // no SW support, ignore call
+            
+            try {
+                navigator.serviceWorker.register("sw.js", { scope: "./" })
+                .then(function (reg)
+                {
+                    console.log("Registered service worker on " + reg.scope);
+                })
+                .catch(OnRegisterSWError);
+            }
+            catch (e)
+            {
+                OnRegisterSWError(e);
+            }
+        };
+    </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6S9Y2CXQ4H"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-6S9Y2CXQ4H');
+    </script>
+</body> 
+</html>
