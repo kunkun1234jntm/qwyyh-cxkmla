@@ -1,276 +1,185 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>蔡徐坤马里奥1.21</title>
-    <meta name="description" content="ikun也有自己的马里奥！" />
-    
-    <!-- Standardised web app manifest -->
-    <link rel="manifest" href="appmanifest.json" />
-    
-    <!-- Allow fullscreen mode on iOS devices. (These are Apple specific meta tags.) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>蔡徐坤马里奥v1.3</title>
+    <meta name="description" content="一款魔改版的马里奥游戏，蔡徐坤马里奥，童年爆改，魔性上头！马里奥吃中分头进化成了蔡徐坤，捡到了篮球就把篮球当做子弹。界面简洁，操作便捷，是ikun们的马里奥游戏首选！" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="apple-touch-icon" sizes="256x256" href="icon-256.png" />
-    <meta name="HandheldFriendly" content="true" />
-    
-    <!-- Chrome for Android web app tags -->
-    <meta name="mobile-web-app-capable" content="yes" />
     <link rel="shortcut icon" sizes="256x256" href="icon-256.png" />
-
-    <!-- All margins and padding must be zero for the canvas to fill the screen. -->
-    <style type="text/css">
+    <style>
         * {
-            padding: 0;
             margin: 0;
-        }
-        html, body {
-            background: #000;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
             color: #fff;
+        }
+
+        body {
+            background: #fff;
+            color: #3f3f3f;
+            font-family: Apple LiGothic Medium, SimHei, Geneva, Arial, Helvetica, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            width: 100%;
+            font-size: 12px;
+        }
+
+        #zl {
             overflow: hidden;
-            touch-action: none;
-            -ms-touch-action: none;
+            width: 100%;
+            height: 100vh; /* 使 iframe 容器占满整个视口高度 */
+        }
+
+        iframe {
+            border: none;
+            width: 100%;
             height: 100%;
         }
-        canvas {
-            touch-action-delay: none;
-            touch-action: none;
-            -ms-touch-action: none;
-        }
-        
-        /* 弹窗样式 */
-        #instruction-overlay {
+
+        /* 操作说明弹窗样式 */
+        .instruction-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            background-color: rgba(0, 0, 0, 0.8);
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            font-family: Arial, sans-serif;
+            z-index: 1000;
         }
-        
-        #instruction-box {
+
+        .instruction-content {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            border-radius: 15px;
             padding: 30px;
-            max-width: 80%;
+            border-radius: 15px;
+            max-width: 90%;
+            width: 400px;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 2px solid #fff;
+            animation: fadeIn 0.5s ease-out;
         }
-        
-        #instruction-box h2 {
+
+        .instruction-content h2 {
             margin-bottom: 20px;
             font-size: 24px;
             color: #fff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
-        
-        #instruction-content {
-            font-size: 18px;
+
+        .instruction-content p {
+            margin-bottom: 20px;
+            font-size: 16px;
             line-height: 1.6;
-            margin-bottom: 25px;
             color: #fff;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
-        
-        #confirm-button {
+
+        .instruction-content button {
             background: linear-gradient(to right, #ff8a00, #da1b60);
             border: none;
+            padding: 12px 30px;
             border-radius: 50px;
             color: white;
-            padding: 12px 30px;
-            font-size: 18px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            font-weight: bold;
         }
-        
-        #confirm-button:hover {
+
+        .instruction-content button:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
-        
-        #confirm-button:active {
+
+        .instruction-content button:active {
             transform: translateY(1px);
         }
-        
-        .key {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 5px;
-            padding: 2px 8px;
-            margin: 0 3px;
-            font-weight: bold;
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
-        @media (max-width: 768px) {
-            #instruction-box {
-                max-width: 90%;
-                padding: 20px;
-            }
-            
-            #instruction-box h2 {
-                font-size: 20px;
-            }
-            
-            #instruction-content {
-                font-size: 16px;
-            }
-            
-            #confirm-button {
-                padding: 10px 25px;
-                font-size: 16px;
-            }
+
+        /* 隐藏类 */
+        .hidden {
+            display: none;
         }
     </style>
-    
-</head> 
- 
-<body> 
+</head>
+<body>
     <!-- 操作说明弹窗 -->
-    <div id="instruction-overlay">
-        <div id="instruction-box">
+    <div id="instructionModal" class="instruction-modal">
+        <div class="instruction-content">
             <h2>游戏操作说明</h2>
-            <div id="instruction-content">
-                <!-- 这里的内容会根据设备类型动态填充 -->
-            </div>
-            <button id="confirm-button">我知道了</button>
+            <p id="instructionText"></p>
+            <button id="confirmButton">我知道了</button>
         </div>
     </div>
 
-    <div id="fb-root"></div>
-    
-    <script>
-    // Issue a warning if trying to preview an exported project on disk.
-    (function(){
-        // Check for running exported on file protocol
-        if (window.location.protocol.substr(0, 4) === "file")
-        {
-            
-        }
-    })();
-    </script>
-    
-    <!-- The canvas must be inside a div called c2canvasdiv -->
-    <div id="c2canvasdiv">
-    
-        <!-- The canvas the project will render to.  If you change its ID, don't forget to change the
-        ID the runtime looks for in the jQuery events above (ready() and cr_sizeCanvas()). -->
-        <canvas id="c2canvas" width="256" height="224">
-            <!-- This text is displayed if the visitor's browser does not support HTML5.
-            You can change it, but it is a good idea to link to a description of a browser
-            and provide some links to download some popular HTML5-compatible browsers. -->
-            <h1>Your browser does not appear to support HTML5.  Try upgrading your browser to the latest version.  <a href="http://www.whatbrowser.org">What is a browser?</a>
-            <br/><br/><a href="http://www.microsoft.com/windows/internet-explorer/default.aspx">Microsoft Internet Explorer</a><br/>
-            <a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a><br/>
-            <a href="http://www.google.com/chrome/">Google Chrome</a><br/>
-            <a href="http://www.apple.com/safari/download/">Apple Safari</a></h1>
-        </canvas>
-        
+    <!-- 游戏容器 -->
+    <div id="zl">
+        <iframe id="preview" src="about:blank"></iframe>
     </div>
-    
-    <!-- Pages load faster with scripts at the bottom -->
-    
-    <!-- Construct 2 exported games require jQuery. -->
-    <script src="jquery-2.1.1.min.js"></script>
-
-    <!-- The runtime script.  You can rename it, but don't forget to rename the reference here as well.
-    This file will have been minified and obfuscated if you enabled "Minify script" during export. -->
-    <script src="c2runtime.js"></script>
 
     <script>
-        // 检测设备类型并显示相应的操作说明
-        function detectDeviceAndShowInstructions() {
-            const instructionContent = document.getElementById('instruction-content');
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            if (isMobile) {
-                instructionContent.innerHTML = `
-                    <p>左右滑动控制角色移动</p>
-                    <p><span class="key">A</span>键跳，<span class="key">B</span>键发子弹</p>
-                    <p>下滑钻管道/下蹲</p>
-                `;
+        // 检测设备类型
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        // 设置操作说明文本
+        function setInstructionText() {
+            const instructionText = document.getElementById('instructionText');
+            if (isMobileDevice()) {
+                instructionText.textContent = "左右滑动控制角色移动，A键跳，B键发子弹，下滑钻管道/下蹲";
             } else {
-                instructionContent.innerHTML = `
-                    <p><span class="key">←</span><span class="key">→</span>键控制角色移动</p>
-                    <p><span class="key">空格</span>键跳，<span class="key">↓</span>键下蹲/钻管道</p>
-                    <p><span class="key">Shift</span>键发子弹</p>
-                `;
+                instructionText.textContent = "←→键控制角色移动，空格键跳，↓键下蹲/钻管道，shift键发子弹";
             }
         }
-        
-        // 初始化弹窗和游戏
-        function initializeGame() {
-            detectDeviceAndShowInstructions();
+
+        // 隐藏操作说明并加载游戏
+        function hideInstructionsAndLoadGame() {
+            const modal = document.getElementById('instructionModal');
+            const iframe = document.getElementById('preview');
             
-            // 添加确认按钮点击事件
-            document.getElementById('confirm-button').addEventListener('click', function() {
-                document.getElementById('instruction-overlay').style.display = 'none';
-                
-                // 启动Construct 2项目
-                cr_createRuntime("c2canvas");
-            });
+            // 隐藏弹窗
+            modal.classList.add('hidden');
+            
+            // 加载游戏
+            iframe.src = "play.html";
         }
-        
-        // 在文档加载完成后初始化
-        document.addEventListener('DOMContentLoaded', initializeGame);
-        
-        // Pause and resume on page becoming visible/invisible
-        function onVisibilityChanged() {
-            if (document.hidden || document.mozHidden || document.webkitHidden || document.msHidden)
-                cr_setSuspended(true);
-            else
-                cr_setSuspended(false);
-        };
-        
-        document.addEventListener("visibilitychange", onVisibilityChanged, false);
-        document.addEventListener("mozvisibilitychange", onVisibilityChanged, false);
-        document.addEventListener("webkitvisibilitychange", onVisibilityChanged, false);
-        document.addEventListener("msvisibilitychange", onVisibilityChanged, false);
-        
-        function OnRegisterSWError(e)
-        {
-            console.warn("Failed to register service worker: ", e);
-        };
-        
-        // Runtime calls this global method when ready to start caching (i.e. after startup).
-        // This registers the service worker which caches resources for offline support.
-        window.C2_RegisterSW = function C2_RegisterSW()
-        {
-            if (!navigator.serviceWorker)
-                return;        // no SW support, ignore call
+
+        // iframe 高度自适应
+        function adjustIframeHeight() {
+            const iframe = document.getElementById('preview');
+            iframe.style.height = window.innerHeight + 'px';
+        }
+
+        // 初始化
+        function init() {
+            setInstructionText();
+            adjustIframeHeight();
             
-            try {
-                navigator.serviceWorker.register("sw.js", { scope: "./" })
-                .then(function (reg)
-                {
-                    console.log("Registered service worker on " + reg.scope);
-                })
-                .catch(OnRegisterSWError);
-            }
-            catch (e)
-            {
-                OnRegisterSWError(e);
-            }
-        };
+            // 添加确认按钮事件监听
+            document.getElementById('confirmButton').addEventListener('click', hideInstructionsAndLoadGame);
+            
+            // 窗口大小变化时调整高度
+            window.addEventListener('resize', adjustIframeHeight);
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
     </script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6S9Y2CXQ4H"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-6S9Y2CXQ4H');
-    </script>
-</body> 
+</body>
 </html>
